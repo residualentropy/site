@@ -15,7 +15,7 @@ def root():
 
 geiger_this_period = 0
 geiger_cpm = collections.deque()
-NUM_PERIODS_SAVED = 10
+SAVED_DURATION_SECS = 50
 CPM_PERIOD_SECS = 5
 period_start_time = time.time()
 in_startup_period = True
@@ -59,7 +59,7 @@ def geiger_got(content_b64):
 	msg += f'recieved_count {num}'
 	n_purged = 0
 	while True:
-		if len(geiger_cpm) > NUM_PERIODS_SAVED:
+		if geiger_cpm[0].ts_start < (now - SAVED_DURATION_SECS):
 			geiger_cpm.popleft()
 			n_purged += 1
 		else:
