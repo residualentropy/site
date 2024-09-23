@@ -67,8 +67,8 @@ def geiger_got(content_b64):
 	msg += f', purged {n_purged}'
 	return f'ok, {msg}'
 
-@app.route('/geiger/cpm/all.json')
-def geiger_viewall():
+@app.route('/geiger/cpm.json')
+def geiger_view_cpm():
 	return {
 		"ts_start": [ entry.ts_start for entry in geiger_cpm ],
 		"cpm": [ entry.cpm for entry in geiger_cpm ],
