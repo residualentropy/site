@@ -13,18 +13,23 @@ app = Flask(__name__)
 def root():
 	return '<h1>Hooray!</h1>'
 
-geiger_all = collections.deque()
-SAVE_DURATION_SECS = 10
+geiger_this_period = 0
+geiger_cpm = collections.deque()
+NUM_PERIODS_SAVED = 10
+CPM_PERIOD_SECS = 5
+period_start_time = time.time()
+in_startup_period = True
 
 class Entry:
-	__slots__ = ['ts', 'count']
+	__slots__ = ['ts_start', 'cpm']
 
-	def __init__(self, ts: float, count: int):
-		self.ts = ts
-		self.count = count
+	def __init__(self, ts_start: float, cpm: int):
+		self.ts_start = ts_start
+		self.cpm = cpm
 	
 	def __str__(self):
-		return f'[Entry of {self.count} count(s) at {self.ts}]'
+		ts_end = self.ts_start + CPM_PERIOD_SECS
+		return f'[Entry: {self.cpm} CPM from {self.ts_start} to {ts_end}*]'
 
 @app.route('/geiger/got/<content_b64>', methods= ['POST'])
 def geiger_got(content_b64):
@@ -35,17 +40,36 @@ def geiger_got(content_b64):
 	content = b64decode(content_b64.encode('utf-8')).decode('utf-8')
 	num = int(content.strip())
 	now = time.time()
-	geiger_all.append(Entry(now, num))
-	last_preserved = now - SAVE_DURATION_SECS
+	msg = ''
+	global period_start_time, geiger_this_period, in_startup_period
+	if (now - period_start_time) > CPM_PERIOD_SECS:
+		msg += 'period_end: ('
+		if in_startup_period:
+			in_startup_period = False
+			msg += 'in_startup_period'
+		else:
+			cps = geiger_this_period / CPM_PERIOD_SECS
+			cpm = cps / 60
+			geiger_cpm.append(Entry(period_start_time, cpm))
+			msg += f'saved_period: cpm: {cpm}'
+		geiger_this_period = 0
+		period_start_time = now
+		msg += '), '
+	geiger_this_period += num
+	msg += f'recieved_count {num}'
 	n_purged = 0
 	while True:
-		if geiger_all[0].ts < last_preserved:
-			geiger_all.popleft()
+		if len(geiger_cpm) > NUM_PERIODS_SAVED:
+			geiger_cpm.popleft()
 			n_purged += 1
 		else:
 			break
-	return f"ok, stored {num} purged {n_purged}"
+	msg += f', purged {n_purged}'
+	return f'ok, {msg}'
 
-@app.route('/geiger/viewall')
+@app.route('/geiger/cpm/all.json')
 def geiger_viewall():
-	return '<pre>\n' + '\n'.join([ str(i) for i in geiger_all ]) + '\n</pre>'
+	return {
+		"ts_start": [ entry.ts_start for entry in geiger_cpm ],
+		"cpm": [ entry.cpm for entry in geiger_cpm ],
+	}
