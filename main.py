@@ -49,7 +49,7 @@ def geiger_got(content_b64):
 			msg += 'in_startup_period'
 		else:
 			cps = geiger_this_period / CPM_PERIOD_SECS
-			cpm = cps / 60
+			cpm = cps * 60
 			geiger_cpm.append(Entry(period_start_time, cpm))
 			msg += f'saved_period: cpm: {cpm}'
 		geiger_this_period = 0
