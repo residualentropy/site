@@ -58,7 +58,7 @@ def geiger_got(content_b64):
 	geiger_this_period += num
 	msg += f'recieved_count {num}'
 	n_purged = 0
-	while True:
+	while len(geiger_cpm) > 0:
 		if geiger_cpm[0].ts_start < (now - SAVED_DURATION_SECS):
 			geiger_cpm.popleft()
 			n_purged += 1
