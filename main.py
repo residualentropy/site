@@ -28,6 +28,10 @@ class Entry:
 		ts_end = self.ts_start + CPM_PERIOD_SECS
 		return f'[Entry: {self.cpm} CPM from {self.ts_start} to {ts_end}*]'
 
+@app.route('/geiger/cfg/period-secs')
+def geiger_cfg_period_secs():
+	return str(CPM_PERIOD_SECS)
+
 @app.route('/geiger/got/<content_b64>', methods= ['POST'])
 def geiger_got(content_b64):
 	if 'X-Shared-Secret' not in request.headers:
