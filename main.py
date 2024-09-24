@@ -15,7 +15,7 @@ def root():
 
 geiger_cpm = collections.deque()
 SAVED_DURATION_SECS = 604800 # 1 week
-CPM_PERIOD_SECS = 5 * 60 # 5 minutes
+CPM_PERIOD_SECS = 60 # 5 minutes
 
 class Entry:
 	__slots__ = ['ts_start', 'cpm']
