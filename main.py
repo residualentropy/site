@@ -14,8 +14,8 @@ def root():
 	return '<h1>Hooray!</h1>'
 
 geiger_cpm = collections.deque()
-SAVED_DURATION_SECS = 50
-CPM_PERIOD_SECS = 5
+SAVED_DURATION_SECS = 604800 # 1 week
+CPM_PERIOD_SECS = 30 * 60 # 30 minutes
 
 class Entry:
 	__slots__ = ['ts_start', 'cpm']
